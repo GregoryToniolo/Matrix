@@ -16,8 +16,12 @@ A simple library written in C for basic Matrix operations
 Linux
 
 ```bash
-  git clone https://github.com/GregoryToniolo/Vector && cd Vector && sudo cp g-matrix.h /usr/include
+  git clone https://github.com/GregoryToniolo/Matrix && cd Matrix && sudo cp g-matrix.h /usr/include
 ```
 Usage:
 
 Include the "g-matrix.h" file in your C program.
+
+## FAQ:
+What about the determinant, Matrix inversion, Matrix diagonalization ...etc...etc?
+Not adding those they are too hard to implement and understand.
