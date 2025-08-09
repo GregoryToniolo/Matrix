@@ -1,6 +1,6 @@
 # Matrix
 
-A simple library C for basic Matrix operations
+A simple library written in C for basic Matrix operations
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
