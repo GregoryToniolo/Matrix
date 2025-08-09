@@ -1,14 +1,15 @@
-# Vector
+# Matrix
 
-A simple library C for basic Vector operations
+A simple library C for basic Matrix operations
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
 
 
 ## Features
-
-- dot product, scalar product, addition and subtraciton between 2 vectors
+- memory safe functionality
+- matrix constructor and destructor functions
+- dot product, scalar product, addition, subtraction, hadamard product, hadamard division
 
 ## Installation
 
@@ -19,4 +20,4 @@ Linux
 ```
 Usage:
 
-Include the "g-vectors.h" file in your C program.
+Include the "g-matrix.h" file in your C program.
