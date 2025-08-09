@@ -24,4 +24,5 @@ Include the "g-matrix.h" file in your C program.
 
 ## FAQ:
 What about the determinant, Matrix inversion, Matrix diagonalization ...etc...etc?
+
 Not adding those they are too hard to implement and understand.
