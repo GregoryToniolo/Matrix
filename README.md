@@ -16,7 +16,7 @@ A simple library written in C for basic Matrix operations
 Linux
 
 ```bash
-  git clone https://github.com/GregoryToniolo/Vector && cd Vector && sudo cp g-vectors.h
+  git clone https://github.com/GregoryToniolo/Vector && cd Vector && sudo cp g-matrix.h /usr/include
 ```
 Usage:
 
