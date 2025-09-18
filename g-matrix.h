@@ -115,6 +115,7 @@ float cosecant_rad(float theta)
     return 1 / sine_rad(theta);
 }
 
+#ifndef MATRIX_EMBEDDED
 typedef struct {
     float* entries;
     unsigned int rows;
@@ -322,6 +323,7 @@ void Matrix_dot(Matrix* matrix1, Matrix* matrix2, Matrix* result)
     }
 
 }
+#endif
 
 typedef struct
 {
