@@ -16,6 +16,8 @@ A simple library written in C/C++ for basic Matrix and vector operations
 - sine, cosine, tangent, secant, cosecant and cotangent functions with versions for use with degrees and radians
 - vector homogenization and dehomogenization
 
+## Extra
+- to use only vec2-4 and mat2-4 types define MATRIX_EMBEDDED before including the header file in your C/C++ program.
 
 ## Installation
 
