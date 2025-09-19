@@ -1,5 +1,7 @@
+#ifndef MATRIX_EMBEDDED
 #ifndef __cplusplus
 #include <stdlib.h>
+#endif
 #endif
 
 #ifndef NULL
