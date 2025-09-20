@@ -1,4 +1,4 @@
-#if !(defined __cplusplus) && !(defined MATRIX_EMBEDDED)
+#ifndef __cplusplus
 #include <stdlib.h>
 #endif
 
@@ -340,6 +340,21 @@ typedef struct
     float x, y, z, w;
 }Vec4;
 
+typedef struct
+{
+    float entries[2][2];
+}Mat2;
+
+typedef struct
+{
+    float entries[3][3];
+}Mat3;
+
+typedef struct
+{
+    float entries[4][4];
+}Mat4;
+
 Vec2 Vec2_add(Vec2 a, Vec2 b)
 {
     return (Vec2) {a.x + b.x, a.y + b.y};
@@ -365,9 +380,24 @@ float Vec2_length(Vec2 a)
     return fsqrt(a.x * a.x + a.y * a.y);
 }
 
+float Vec2_distance(Vec2 a, Vec2 b)
+{
+    return fsqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
+}
+
 Vec2 Vec3_dehomogenize(Vec3 a)
 {
     return (Vec2) {a.x / a.z, a.y / a.z};
+}
+
+Vec2 Vec3_project_orthogonal(Vec3 a)
+{
+    return (Vec2) {a.x, a.y};
+}
+
+Vec2 Vec3_project_perspective(Vec3 a, float distance)
+{
+    return (Vec2) {a.x /(distance - a.z) , a.y/(distance - a.z)};
 }
 
 Vec3 Vec2_homogenize(Vec2 a)
@@ -400,9 +430,24 @@ float Vec3_length(Vec3 a)
     return fsqrt(a.x * a.x + a.y * a.y + a.z * a.z);
 }
 
+float Vec3_distance(Vec3 a, Vec3 b)
+{
+    return fsqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) + (a.z - b.z) * (a.z - b.z));
+}
+
 Vec3 Vec4_dehomogenize(Vec4 a)
 {
     return (Vec3) {a.x / a.w, a.y / a.w, a.z / a.w};
+}
+
+Vec3 Vec4_project_orthogonal(Vec4 a)
+{
+    return (Vec3) {a.x, a.y, a.z};
+}
+
+Vec3 Vec4_project_perspective(Vec4 a, float distance)
+{
+    return (Vec3) {a.x / (distance - a.w), a.y / (distance - a.w), a.z / (distance - a.w)};
 }
 
 Vec4 Vec3_homogenize(Vec3 a)
@@ -435,20 +480,10 @@ float Vec4_length(Vec4 a)
     return fsqrt(a.x * a.x + a.y * a.y + a.z * a.z + a.w * a.w);
 }
 
-typedef struct
+float Vec4_distance(Vec4 a, Vec4 b)
 {
-    float entries[2][2];
-}Mat2;
-
-typedef struct
-{
-    float entries[3][3];
-}Mat3;
-
-typedef struct
-{
-    float entries[4][4];
-}Mat4;
+    return fsqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) + (a.z - b.z) * (a.z - b.z) + (a.w - b.w) * (a.w - b.w));
+}
 
 Mat2 Mat2_add(Mat2 a, Mat2 b)
 {
@@ -610,4 +645,220 @@ Vec4 Vec4_transform(Mat4 mat, Vec4 vec)
         vec.x * mat.entries[2][0] + vec.y * mat.entries[2][1] + vec.z * mat.entries[2][2] + vec.w * mat.entries[2][3],
         vec.x * mat.entries[3][0] + vec.y * mat.entries[3][1] + vec.z * mat.entries[3][2] + vec.w * mat.entries[3][3],
     };
+}
+
+Vec2 Vec2_rotate_deg(Vec2 vec, float theta)
+{
+    Mat2 rotation = {{
+        {cosine_deg(theta), -sine_deg(theta)},
+        {sine_deg(theta), cosine_deg(theta)}
+    }};
+    return Vec2_transform(rotation, vec);
+}
+
+Vec2 Vec2_rotate_rad(Vec2 vec, float theta)
+{
+    Mat2 rotation = {{
+        {cosine_rad(theta), -sine_rad(theta)},
+        {sine_rad(theta), cosine_rad(theta)}
+    }};
+    return Vec2_transform(rotation, vec);
+}
+
+Vec3 Vec3_rotateX_deg(Vec3 vec, float theta)
+{
+    Mat3 rotation = {{
+        {1, 0, 0},
+        {0, cosine_deg(theta), -sine_deg(theta)},
+        {0, sine_deg(theta), cosine_deg(theta)}
+    }};
+
+    return Vec3_transform(rotation, vec);
+}
+
+Vec3 Vec3_rotateX_rad(Vec3 vec, float theta)
+{
+    Mat3 rotation = {{
+        {1, 0, 0},
+        {0, cosine_rad(theta), -sine_rad(theta)},
+        {0, sine_rad(theta), cosine_rad(theta)}
+    }};
+
+    return Vec3_transform(rotation, vec);
+}
+
+Vec3 Vec3_rotateY_deg(Vec3 vec, float theta)
+{
+    Mat3 rotation = {{
+        {cosine_deg(theta), 0, sine_deg(theta)},
+        {0, 1, 0},
+        {-sine_deg(theta), 0, cosine_deg(theta)},
+    }};
+
+    return Vec3_transform(rotation, vec);
+}
+
+Vec3 Vec3_rotateY_rad(Vec3 vec, float theta)
+{
+    Mat3 rotation = {{
+        {cosine_rad(theta), 0, sine_rad(theta)},
+        {0, 1, 0},
+        {-sine_rad(theta), 0, cosine_rad(theta)},
+    }};
+
+    return Vec3_transform(rotation, vec);
+}
+
+Vec3 Vec3_rotateZ_deg(Vec3 vec, float theta)
+{
+    Mat3 rotation = {{
+        {cosine_deg(theta), -sine_deg(theta), 0},
+        {sine_deg(theta), cosine_deg(theta), 0},
+        {0, 0, 1}
+    }};
+
+    return Vec3_transform(rotation, vec);
+}
+
+Vec3 Vec3_rotateZ_rad(Vec3 vec, float theta)
+{
+    Mat3 rotation = {{
+        {cosine_rad(theta), -sine_rad(theta), 0},
+        {sine_rad(theta), cosine_rad(theta), 0},
+        {0, 0, 1}
+    }};
+
+    return Vec3_transform(rotation, vec);
+}
+
+Vec4 Vec4_rotateZW_deg(Vec4 vec, float theta)
+{
+    Mat4 rotation = {{
+        {cosine_deg(theta), -sine_deg(theta), 0, 0},
+        {sine_deg(theta), cosine_deg(theta), 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1}
+    }};
+    return Vec4_transform(rotation, vec);
+}
+
+Vec4 Vec4_rotateZW_rad(Vec4 vec, float theta)
+{
+    Mat4 rotation = {{
+        {cosine_rad(theta), -sine_rad(theta), 0, 0},
+        {sine_rad(theta), cosine_rad(theta), 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1}
+    }};
+    return Vec4_transform(rotation, vec);
+}
+
+Vec4 Vec4_rotateYW_deg(Vec4 vec, float theta)
+{
+    Mat4 rotation = {{
+        {cosine_deg(theta), 0, -sine_deg(theta), 0},
+        {0, 1, 0, 0},
+        {sine_deg(theta), 0, cosine_deg(theta), 0},
+        {0, 0, 0, 1}
+    }};
+    return Vec4_transform(rotation, vec);
+}
+
+Vec4 Vec4_rotateYW_rad(Vec4 vec, float theta)
+{
+    Mat4 rotation = {{
+        {cosine_rad(theta), 0, -sine_rad(theta), 0},
+        {0, 1, 0, 0},
+        {sine_rad(theta), 0, cosine_rad(theta), 0},
+        {0, 0, 0, 1}
+    }};
+    return Vec4_transform(rotation, vec);
+}
+
+Vec4 Vec4_rotateYZ_deg(Vec4 vec, float theta)
+{
+    Mat4 rotation = {{
+        {cosine_deg(theta), 0, 0, -sine_deg(theta)},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {sine_deg(theta), 0, 0, cosine_deg(theta)},
+    }};
+    return Vec4_transform(rotation, vec);
+}
+
+Vec4 Vec4_rotateYZ_rad(Vec4 vec, float theta)
+{
+    Mat4 rotation = {{
+        {cosine_rad(theta), 0, 0, -sine_rad(theta)},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {sine_rad(theta), 0, 0, cosine_rad(theta)},
+    }};
+    return Vec4_transform(rotation, vec);
+}
+
+Vec4 Vec4_rotateXW_deg(Vec4 vec, float theta)
+{
+    Mat4 rotation = {{
+        {1, 0, 0, 0},
+        {0, cosine_deg(theta), -sine_deg(theta), 0},
+        {0, sine_deg(theta), cosine_deg(theta), 0},
+        {0, 0, 0, 1}
+    }};
+    return Vec4_transform(rotation, vec);
+}
+
+Vec4 Vec4_rotateXW_rad(Vec4 vec, float theta)
+{
+    Mat4 rotation = {{
+        {1, 0, 0, 0},
+        {0, cosine_rad(theta), -sine_rad(theta), 0},
+        {0, sine_rad(theta), cosine_rad(theta), 0},
+        {0, 0, 0, 1}
+    }};
+    return Vec4_transform(rotation, vec);
+}
+
+Vec4 Vec4_rotateXZ_deg(Vec4 vec, float theta)
+{
+    Mat4 rotation = {{
+        {1, 0, 0, 0},
+        {0, cosine_deg(theta), 0, -sine_deg(theta)},
+        {0, 0, 1, 0},
+        {0, sine_deg(theta), 0, cosine_deg(theta)}
+    }};
+    return Vec4_transform(rotation, vec);
+}
+
+Vec4 Vec4_rotateXZ_rad(Vec4 vec, float theta)
+{
+    Mat4 rotation = {{
+        {1, 0, 0, 0},
+        {0, cosine_rad(theta), 0, -sine_rad(theta)},
+        {0, 0, 1, 0},
+        {0, sine_rad(theta), 0, cosine_rad(theta)}
+    }};
+    return Vec4_transform(rotation, vec);
+}
+
+Vec4 Vec4_rotateXY_deg(Vec4 vec, float theta)
+{
+    Mat4 rotation = {{
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, cosine_deg(theta), -sine_deg(theta)},
+        {0, 0, sine_deg(theta), cosine_deg(theta)}
+    }};
+    return Vec4_transform(rotation, vec);
+}
+
+Vec4 Vec4_rotateXY_rad(Vec4 vec, float theta)
+{
+    Mat4 rotation = {{
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, cosine_rad(theta), -sine_rad(theta)},
+        {0, 0, sine_rad(theta), cosine_rad(theta)}
+    }};
+    return Vec4_transform(rotation, vec);
 }
