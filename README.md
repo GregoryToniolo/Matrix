@@ -7,7 +7,7 @@ A simple library written in C/C++ for basic Matrix and vector operations
 
 
 ## Features
-- memory safe functionality
+- memory safe functionality* (see Extra)
 - matrix constructor and destructor functions
 - dot product, scalar product, addition, subtraction, hadamard product, hadamard division
 - Mat2, Mat3, Mat4, Vec2, Vec3 and Vec4 types for more efficient operations
@@ -20,6 +20,7 @@ A simple library written in C/C++ for basic Matrix and vector operations
 
 ## Extra
 - to use only vec2-4 and mat2-4 types define MATRIX_EMBEDDED before including the header file in your C/C++ program.
+- As of now it is heavily advised not to use M x N matrix type because the code requires a near total rewrite for memory safety and ease of use.
 
 ## Installation
 
