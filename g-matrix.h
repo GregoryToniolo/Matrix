@@ -1,9 +1,10 @@
+#pragma once
+
 #ifndef __cplusplus
 #include <stdlib.h>
-#endif
-
-#ifndef NULL
-#define NULL nullptr
+#include <stdio.h>
+#else
+#include <stdexcept>
 #endif
 
 #define PI 3.1415265359
@@ -116,155 +117,348 @@ float cosecant_rad(float theta)
 }
 
 #ifndef MATRIX_EMBEDDED
+#ifdef __cplusplus
+
+struct Matrix
+{
+    const unsigned int rows, columns;
+    float** entries;
+    Matrix(unsigned int lines, unsigned int cols) : rows(lines), columns(cols)
+    {
+        if (lines == 0 || cols == 0)
+        {
+            throw std::invalid_argument("matrix rows and columns must be nonzero");
+        }
+
+        entries = new float*[rows];
+
+        for (int i = 0; i < rows; i++)
+        {
+            entries[i] = new float[columns]();
+        }
+    }
+
+    //copy constructor
+    Matrix(const Matrix& other) : rows(other.rows), columns(other.columns)
+    {
+        entries = new float*[rows];
+
+        for (int i = 0; i < rows; i++)
+        {
+            entries[i] = new float[columns]();
+        }
+
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < columns; j++)
+            {
+                entries[i][j] = other.entries[i][j];
+            }
+        }
+    }
+
+    float Get(const unsigned int row, const unsigned int column) const
+    {
+        if (row < rows && row >= 0 && column < columns && column >= 0)
+        {
+            return entries[row][column];
+        }
+        throw std::out_of_range("tried to access element not in matrix");
+    }
+
+    ~Matrix()
+    {
+        for (int i = 0; i < rows; i++)
+        {
+            delete[] entries[i];
+            entries[i] = nullptr;
+        }
+        delete[] entries;
+        entries = nullptr;
+    }
+};
+
+Matrix Matrix_add(const Matrix& a, const Matrix& b)
+{
+    if (a.rows != b.rows || a.columns != b.columns)
+    {
+        throw std::invalid_argument("invalid number of rows or columns in input matrix");
+    }
+    Matrix result(a.rows, b.columns);
+
+    for (int i = 0; i < result.rows; i++)
+    {
+        for (int j = 0; j < result.columns; j++)
+        {
+            result.entries[i][j] = a.entries[i][j] + b.entries[i][j];
+        }
+    }
+
+    return result;
+}
+
+Matrix Matrix_subtract(const Matrix& a, const Matrix& b)
+{
+    if (a.rows != b.rows || a.columns != b.columns)
+    {
+        throw std::invalid_argument("invalid number of rows or columns in input matrix");
+    }
+    Matrix result(a.rows, b.columns);
+
+    for (int i = 0; i < result.rows; i++)
+    {
+        for (int j = 0; j < result.columns; j++)
+        {
+            result.entries[i][j] = a.entries[i][j] - b.entries[i][j];
+        }
+    }
+
+    return result;
+}
+
+Matrix Matrix_hadamard_product(const Matrix& a, const Matrix& b)
+{
+    if (a.rows != b.rows || a.columns != b.columns)
+    {
+        throw std::invalid_argument("invalid number of rows or columns in input matrix");
+    }
+    Matrix result(a.rows, b.columns);
+
+    for (int i = 0; i < result.rows; i++)
+    {
+        for (int j = 0; j < result.columns; j++)
+        {
+            result.entries[i][j] = a.entries[i][j] * b.entries[i][j];
+        }
+    }
+
+    return result;
+}
+
+Matrix Matrix_hadamard_division(const Matrix& a, const Matrix& b)
+{
+    if (a.rows != b.rows || a.columns != b.columns)
+    {
+        throw std::invalid_argument("invalid number of rows or columns in input matrix");
+    }
+    Matrix result(a.rows, b.columns);
+
+    for (int i = 0; i < result.rows; i++)
+    {
+        for (int j = 0; j < result.columns; j++)
+        {
+            result.entries[i][j] = a.entries[i][j] / b.entries[i][j];
+        }
+    }
+
+    return result;
+}
+
+Matrix Matrix_scalar(const Matrix& a, const float b)
+{
+    Matrix result(a.rows, a.columns);
+
+    for (int i = 0; i < result.rows; i++)
+    {
+        for (int j = 0; j < result.columns; j++)
+        {
+            result.entries[i][j] = a.entries[i][j] * b;
+        }
+    }
+
+    return result;
+}
+
+Matrix Matrix_dot(const Matrix& a, const Matrix& b)
+{
+    if (a.columns != b.rows)
+    {
+        throw std::invalid_argument("invalid number of rows or columns in input matrix");
+    }
+
+    Matrix result(a.rows, b.columns);
+
+    for (int i = 0; i < a.rows; i++)
+    {
+        for (int j = 0; j < b.columns; j++)
+        {
+            for (int k = 0; k < b.rows; k++)
+            {
+                result.entries[i][j] += a.entries[i][k] * b.entries[k][j];
+            }
+        }
+    }
+
+    return result;
+}
+
+#else
+
+void terminate(const char* error)
+{
+    fprintf(stderr, "Error [%s] has occurred now aborting.\n", error);
+    exit(EXIT_FAILURE);
+}
+
 typedef struct {
-    float* entries;
+    float** entries;
     unsigned int rows;
     unsigned int columns;
 }Matrix;
 
 void Matrix_init(Matrix* matrix)
 {
-    if (!matrix)
+    if (matrix == NULL)
     {
-        return;
+        terminate("cannot initialize null pointer");
     }
     else if (matrix->rows == 0 || matrix->columns == 0)
     {
-        return;
+        terminate("matrix rows and columns must be nonzero");
     }
-#ifndef __cplusplus
-    matrix->entries = (float*) malloc(sizeof(float[matrix->rows * matrix->columns]));
-#else
-    matrix->entries = new float[matrix->rows * matrix->columns];
-#endif
+    
+    matrix->entries = (float**) malloc(sizeof(float*[matrix->rows]));
+
+    for (int i = 0; i < matrix->rows; i++)
+    {
+        matrix->entries[i] = (float*) malloc(sizeof(float[matrix->columns]));
+    }
 
     if (matrix->entries == NULL)
     {
+        terminate("matrix initialization has failed");
         return;
     }
 
-    for (int i = 0; i < matrix->rows * matrix->columns; i++) 
+    for (int i = 0; i < matrix->rows; i++) 
     {
-        matrix->entries[i] = 0;
+        for (int j = 0; j < matrix->rows; j++) 
+        {
+            matrix->entries[i][j] = 0;
+        }
     }
 }
 
 void Matrix_free(Matrix* matrix)
 {
-#ifndef  __cplusplus
+    for (int i = 0; i < matrix->rows; i++)
+    {
+        free(matrix->entries[i]);
+    }
     free(matrix->entries);
-#else
-    delete[] matrix->entries;
-#endif
 }
 
 //initialize all matrices with matrix_init before calling this function
-void Matrix_add(Matrix* matrix1, Matrix* matrix2, Matrix* result)
+void Matrix_add(Matrix* a, Matrix* b, Matrix* result)
 {
-    if (!matrix1 || !matrix2 || !result)
+    if (!a || !b || !result)
     {
-        return;
+        terminate("cannot perform operations on null pointer");
     }
-    else if ((matrix1->columns != matrix2->columns) || (matrix2->columns != result->columns))
+    else if ((a->columns != b->columns) || (b->columns != result->columns))
     {
-        return;
+        terminate("invalid number of columns in input or result matrix");
     }
-    else if ((matrix1->rows != matrix2->rows) || (matrix2->rows != result->rows)) {
-        return;
-    }
-    else if (matrix1->entries == NULL || matrix2->entries == NULL || result->entries == NULL)
+    else if ((a->rows != b->rows) || (b->rows != result->rows)) 
     {
-        return;
+        terminate("invalid number of rows in input or result matrix");
+    }
+    else if (a->entries == NULL || b->entries == NULL || result->entries == NULL)
+    {
+        terminate("cannot perform operations on matrix with null entries");
     }
 
-    for (int i = 0; i < matrix1->rows; i++) 
+    for (int i = 0; i < a->rows; i++) 
     {
-        for (int j = 0; j < matrix2->columns; j++) 
+        for (int j = 0; j < b->columns; j++) 
         {
-            result->entries[j + i * result->columns] = matrix1->entries[j + i * result->columns] + matrix2->entries[j + i * result->columns];
+            result->entries[i][j] = a->entries[i][j] + b->entries[i][j];
         }
     }
 }
 
 //initialize all matrices with matrix_init before calling this function
-void Matrix_subtract(Matrix* matrix1, Matrix* matrix2, Matrix* result)
+void Matrix_subtract(Matrix* a, Matrix* b, Matrix* result)
 {
-    if (!matrix1 || !matrix2 || !result)
+    if (!a || !b || !result)
     {
-        return;
+        terminate("cannot perform operations on null pointer");
     }
-    else if ((matrix1->columns != matrix2->columns) || (matrix2->columns != result->columns))
+    else if ((a->columns != b->columns) || (b->columns != result->columns))
     {
-        return;
+        terminate("invalid number of columns in input or result matrix");
     }
-    else if ((matrix1->rows != matrix2->rows) || (matrix2->rows != result->rows)) {
-        return;
-    }
-    else if (matrix1->entries == NULL || matrix2->entries == NULL || result->entries == NULL)
+    else if ((a->rows != b->rows) || (b->rows != result->rows)) 
     {
-        return;
+        terminate("invalid number of rows in input or result matrix");
+    }
+    else if (a->entries == NULL || b->entries == NULL || result->entries == NULL)
+    {
+        terminate("cannot perform operations on matrix with null entries");
     }
 
-    for (int i = 0; i < matrix1->rows; i++) 
+    for (int i = 0; i < a->rows; i++) 
     {
-        for (int j = 0; j < matrix2->columns; j++) 
+        for (int j = 0; j < b->columns; j++) 
         {
-            result->entries[j + i * result->columns] = matrix1->entries[j + i * result->columns] - matrix2->entries[j + i * result->columns];
+            result->entries[i][j] = a->entries[i][j] - b->entries[i][j];
         }
     }
 }
 
 //initialize all matrices with matrix_init before calling this function
-void Matrix_hadamard_product(Matrix* matrix1, Matrix* matrix2, Matrix* result)
+void Matrix_hadamard_product(Matrix* a, Matrix* b, Matrix* result)
 {
-    if (!matrix1 || !matrix2 || !result)
+    if (!a || !b || !result)
     {
-        return;
+        terminate("cannot perform operations on null pointer");
     }
-    else if ((matrix1->columns != matrix2->columns) || (matrix2->columns != result->columns))
+    else if ((a->columns != b->columns) || (b->columns != result->columns))
     {
-        return;
+        terminate("invalid number of columns in input or result matrix");
     }
-    else if ((matrix1->rows != matrix2->rows) || (matrix2->rows != result->rows)) {
-        return;
-    }
-    else if (matrix1->entries == NULL || matrix2->entries == NULL || result->entries == NULL)
+    else if ((a->rows != b->rows) || (b->rows != result->rows)) 
     {
-        return;
+        terminate("invalid number of rows in input or result matrix");
+    }
+    else if (a->entries == NULL || b->entries == NULL || result->entries == NULL)
+    {
+        terminate("cannot perform operations on matrix with null entries");
     }
 
-    for (int i = 0; i < matrix1->rows; i++) 
+    for (int i = 0; i < a->rows; i++) 
     {
-        for (int j = 0; j < matrix2->columns; j++) 
+        for (int j = 0; j < b->columns; j++) 
         {
-            result->entries[j + i * result->columns] = matrix1->entries[j + i * result->columns] * matrix2->entries[j + i * result->columns];
+            result->entries[i][j] = a->entries[i][j] * b->entries[i][j];
         }
     }
 }
 
-void Matrix_hadamard_division(Matrix* matrix1, Matrix* matrix2, Matrix* result)
+void Matrix_hadamard_division(Matrix* a, Matrix* b, Matrix* result)
 {
-    if (!matrix1 || !matrix2 || !result)
+    if (!a || !b || !result)
     {
-        return;
+        terminate("cannot perform operations on null pointer");
     }
-    else if ((matrix1->columns != matrix2->columns) || (matrix2->columns != result->columns))
+    else if ((a->columns != b->columns) || (b->columns != result->columns))
     {
-        return;
+        terminate("invalid number of columns in input or result matrix");
     }
-    else if ((matrix1->rows != matrix2->rows) || (matrix2->rows != result->rows)) {
-        return;
-    }
-    else if (matrix1->entries == NULL || matrix2->entries == NULL || result->entries == NULL)
+    else if ((a->rows != b->rows) || (b->rows != result->rows)) 
     {
-        return;
+        terminate("invalid number of rows in input or result matrix");
+    }
+    else if (a->entries == NULL || b->entries == NULL || result->entries == NULL)
+    {
+        terminate("cannot perform operations on matrix with null entries");
     }
 
-    for (int i = 0; i < matrix1->rows; i++) 
+    for (int i = 0; i < a->rows; i++) 
     {
-        for (int j = 0; j < matrix2->columns; j++) 
+        for (int j = 0; j < b->columns; j++) 
         {
-            result->entries[j + i * result->columns] = matrix1->entries[j + i * result->columns] / matrix2->entries[j + i * result->columns];
+            result->entries[i][j] = a->entries[i][j] / b->entries[i][j];
         }
     }
 }
@@ -274,55 +468,56 @@ void Matrix_scalar(Matrix* matrix, float scalar, Matrix* result)
 {
     if (!matrix || !result)
     {
-        return;
+        terminate("cannot perform operations on null pointer");
     }
-    else if ((matrix->columns != result->columns) || (matrix->rows != result->columns))
+    else if ((matrix->columns != result->columns) || (matrix->rows != result->rows))
     {
-        return;
+        terminate("invalid number of rows or columns in input or result matrix");
     }
     else if (matrix->entries == NULL || result->entries == NULL)
     {
-        return;
+        terminate("cannot perform operations on matrix with null entries");
     }
 
     for (int i = 0; i < matrix->rows; i++)
     {
         for (int j = 0; j < result->columns; j++) 
         {
-            result->entries[j + i * result->columns] = matrix->entries[j + i * matrix->columns] * scalar;
+            result->entries[i][j] = matrix->entries[i][j] * scalar;
         }
     }
-
 }
 
 //initialize all matrices with matrix_init before calling this function
-void Matrix_dot(Matrix* matrix1, Matrix* matrix2, Matrix* result)
+void Matrix_dot(Matrix* a, Matrix* b, Matrix* result)
 {
-    if (!matrix1 || !matrix2 || !result)
+    if (!a || !b || !result)
     {
-        return;
+        terminate("cannot perform operations on null pointer");
     }
-    else if (matrix1->entries == NULL || matrix2->entries == NULL || result->entries == NULL)
+    else if (a->entries == NULL || b->entries == NULL || result->entries == NULL)
     {
-        return;
+        terminate("cannot perform operations on matrix with null entries");
     }
-    else if ((matrix1->columns != matrix2->rows) || (matrix1->rows != result->rows) || (matrix2->columns != result->columns))
+    else if ((a->columns != b->rows) || (a->rows != result->rows) || (b->columns != result->columns))
     {
-        return;
+        terminate("invalid number of rows or columns in input or result matrix");
     }
 
-    for (int i = 0; i < matrix1->rows; i++)
+    for (int i = 0; i < a->rows; i++)
     {
-        for (int j = 0; j < matrix2->columns; j++) 
+        for (int j = 0; j < b->columns; j++) 
         {
-            for (int k = 0; k < matrix2->rows; k++)
+            for (int k = 0; k < b->rows; k++)
             {
-                result->entries[j + i * matrix2->columns] += matrix1->entries[k + i * matrix2->rows] * matrix2->entries[j + k * matrix2->columns];
+                result->entries[i][j] += a->entries[i][k] * b->entries[k][j];
             }
         }
     }
 
 }
+#endif
+
 #endif
 
 typedef struct
@@ -588,7 +783,7 @@ Mat3 Mat3_scalar(Mat3 a, float b)
 
 Mat3 Mat3_dot(Mat3 a, Mat3 b)
 {
-    Mat3 c = {{0}};
+    Mat3 c = {{{0}}};
     for (int i = 0; i < 3; i++)
     {
         for (int j = 0; j < 3; j++)
@@ -664,7 +859,7 @@ Mat4 Mat4_hadamard(Mat4 a, Mat4 b)
 
 Mat4 Mat4_dot(Mat4 a, Mat4 b)
 {
-    Mat4 c = {{0}};
+    Mat4 c = {{{0}}};
     for (int i = 0; i < 4; i++)
     {
         for (int j = 0; j < 4; j++)

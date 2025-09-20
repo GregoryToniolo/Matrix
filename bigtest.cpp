@@ -1,31 +1,19 @@
 #include "g-matrix.h"
-#include <stdio.h>
+#include <iostream>
 #define PRINTMATRIX(c)\
     for (int i = 0; i < c.rows; i++)\
     {\
         for (int j = 0; j < c.columns; j++)\
         {\
-            printf("%f ", c.entries[i][j]);\
+            std::cout << c.entries[i][j] << ' ';\
         }\
-        printf("\n");\
+        std::cout << '\n';\
     }\
 
-int main(void)
+int main()
 {
-    Matrix a;
-    a.rows = 4;
-    a.columns = 4;
-    Matrix b;
-    b.rows = 4;
-    b.columns = 4;
-    Matrix c;
-    c.rows = a.rows;
-    c.columns = b.columns;
-
-
-    Matrix_init(&a);
-    Matrix_init(&b);
-    Matrix_init(&c);
+    Matrix a(4, 4);
+    Matrix b(4, 4);
 
     for (int i = 0; i < a.rows; i++)
     {
@@ -42,13 +30,14 @@ int main(void)
             b.entries[i][j] = j;
         }
     }
-    Matrix_dot(&a, &b, &c);
+
+    Matrix c = Matrix_dot(a, b);
+
+    std::cout << "here\n";
 
     PRINTMATRIX(a)
     PRINTMATRIX(b)
     PRINTMATRIX(c)
-
-    Matrix_free(&a);
-    Matrix_free(&b);
-    Matrix_free(&c);
+    
+    return 0;
 }
