@@ -525,6 +525,26 @@ Mat2 Mat2_dot(Mat2 a, Mat2 b)
     }};
 }
 
+Mat2 Mat2_power(Mat2 a, unsigned int exp)
+{
+    Mat2 b = {{
+        {1, 0},
+        {0, 1}
+    }};
+
+    while (exp)
+    {
+        if (exp % 2 == 1)
+        {
+            b = Mat2_dot(b, a);
+        }
+        a =  Mat2_dot(a, a);
+        exp >>= 1;
+    }
+
+    return b;
+}
+
 Vec2 Vec2_transform(Mat2 mat, Vec2 vec)
 {
     return (Vec2) {mat.entries[0][0] * vec.x + mat.entries[0][1] * vec.y, mat.entries[1][0] * vec.x + mat.entries[1][1] * vec.y};
@@ -582,6 +602,27 @@ Mat3 Mat3_dot(Mat3 a, Mat3 b)
     return c;
 }
 
+Mat3 Mat3_power(Mat3 a, unsigned int exp)
+{
+    Mat3 b = {{
+        {1, 0, 0},
+        {0, 1, 0},
+        {0, 0, 1}
+    }};
+
+    while (exp)
+    {
+        if (exp % 2 == 1)
+        {
+            b = Mat3_dot(b, a);
+        }
+        a =  Mat3_dot(a, a);
+        exp >>= 1;
+    }
+
+    return b;
+}
+
 Vec3 Vec3_transform(Mat3 mat, Vec3 vec)
 {
     return (Vec3) {
@@ -635,6 +676,28 @@ Mat4 Mat4_dot(Mat4 a, Mat4 b)
         }
     }
     return c;
+}
+
+Mat4 Mat4_power(Mat4 a, unsigned int exp)
+{
+    Mat4 b = {{
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1}
+    }};
+
+    while (exp)
+    {
+        if (exp % 2 == 1)
+        {
+            b = Mat4_dot(b, a);
+        }
+        a =  Mat4_dot(a, a);
+        exp >>= 1;
+    }
+
+    return b;
 }
 
 Vec4 Vec4_transform(Mat4 mat, Vec4 vec)
